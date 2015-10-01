@@ -1,3 +1,5 @@
+OS=$(shell uname)
+
 ## Libusb compiler flags
 #LIBUSB_CFLAGS=$(shell libusb-config --cflags)
 
@@ -11,7 +13,11 @@ SUBDIR=
 CC=g++
 
 ## Compiler flags
-CFLAGS=-I../../ $(LIBUSB_CFLAGS) -fPIC -Wall
+CFLAGS=-I../../ -fPIC -Wall
+
+ifeq ($(OS),Darwin)
+  CFLAGS+=$(shell libusb-config --cflags)
+endif
 
 .PHONY: all clean $(SUBDIR)
 
