@@ -1,20 +1,23 @@
-OS=$(shell uname)
-
 ## Output object files
-OBJ=rUSB_interface.o
+# 	i2c-dev does not exist under Mac OS
+#	so it will only compile on Linux
+
+OS=$(shell uname)
+ifeq ($(OS),Linux)
+  OBJ=rI2C_interface.o
+endif
+ifeq ($(OS),Darwin)
+  OBJ=
+endif
 
 ## Subdirectories
-SUBDIR=Hantek
+SUBDIR=
 
 ## Compiler
 CC=g++
 
 ## Compiler flags
-CFLAGS=-I../ $(LIBUSB_CFLAGS) -fPIC -Wall
-
-ifeq ($(OS),Darwin)
-  CFLAGS+=$(shell libusb-config --cflags)
-endif
+CFLAGS=-I../ -fPIC -Wall
 
 .PHONY: all clean $(SUBDIR)
 
@@ -31,4 +34,4 @@ $(SUBDIR):
 clean:
 	@echo [MAKE] Cleanup '$(shell pwd)'...
 	rm -f *.o
-	@cd $(SUBDIR); $(MAKE) clean;
+#	@cd $(SUBDIR); $(MAKE) clean;

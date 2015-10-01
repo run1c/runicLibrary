@@ -2,6 +2,7 @@
 BUS=utils
 BUS+=usb
 BUS+=rs232
+BUS+=i2c
 
 ## Object files in root directory
 OBJ+=rException.o

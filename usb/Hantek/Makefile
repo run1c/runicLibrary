@@ -1,5 +1,5 @@
 ## Libusb compiler flags
-LIBUSB_CFLAGS=$(shell libusb-config --cflags)
+#LIBUSB_CFLAGS=$(shell libusb-config --cflags)
 
 ## Output object files
 OBJ=HantekDSO_5000P.o
