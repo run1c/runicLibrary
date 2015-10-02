@@ -23,7 +23,12 @@ int main(){
 
 	// Wait until there is data to be read
 	while (sampleLen == HANTEK_DSO_NODATA){
-		sampleLen = dso.readSampleData(HANTEK_DSO_CH1, data, time, sizeof(data));
+		try {
+			sampleLen = dso.readSampleData(HANTEK_DSO_CH1, data, time, sizeof(data));
+		} catch (rUSB_exception &ex) {
+			printf("Exception: '%s' Error %i\n", ex.what(), ex.getErrorNumber());
+			break;
+		}
 	}
 
 	// Print all data

@@ -1,6 +1,6 @@
 CC=g++
 
-CFLAGS=-Wall -fPIC -I../ $(shell libusb-config --cflags)
+CFLAGS=-Wall -fPIC -g -I../ $(shell libusb-config --cflags)
 LDFLAGS=$(shell libusb-config --libs) -L../ -lRunic -lusb-1.0
 
 BIN=hantek_example
