@@ -84,7 +84,7 @@ public:
 #define HANTEK_DSO_VERT_VB_5V		0x0A
 
 // Horizontal settings (Seconds/division)
-#define HANTEK_DSO_HORZ_DIV_PER_SCREEN	16.f
+#define HANTEK_DSO_HORZ_DIV_PER_SCREEN	19.f
 #define HANTEK_DSO_HORZ_TB_2NS		0x00
 #define HANTEK_DSO_HORZ_TB_4NS		0x01
 #define HANTEK_DSO_HORZ_TB_8NS		0x02
