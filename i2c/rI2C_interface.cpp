@@ -6,6 +6,7 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 rI2C_interface::rI2C_interface() : rSerial_interface() {
 

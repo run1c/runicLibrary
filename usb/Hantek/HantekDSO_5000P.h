@@ -37,7 +37,7 @@ public:
 #define HANTEK_DSO_IN_CMD	0x80
 
 #define HANTEK_DSO_USB_MAXTRIES	2
-#define HANTEK_DSO_IDLE_US	1e4
+#define HANTEK_DSO_IDLE_US	2e4	// Delay between read and write commands; needed for stable readout
 #define HANTEK_DSO_MAXTRIES	2
 
 // Message types

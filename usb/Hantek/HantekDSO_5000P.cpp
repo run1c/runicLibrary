@@ -244,12 +244,11 @@ void HantekDSO_5000P::issueRequest(uint8_t _marker, uint8_t _cmd, uint8_t *_data
 	printf("\n[DEBUG HantekDSO_5000P::issueRequest] ################# \n");
 #endif
 	// Send request
-	usleep(HANTEK_DSO_IDLE_US);
 	sendOut(_marker, _cmd, _dataOut, _lenOut);
 
 	// Read answer
 	while (true) {
-		usleep(HANTEK_DSO_IDLE_US);
+		usleep(HANTEK_DSO_IDLE_US);	// TODO: Avoid sleep!!
 		// Read until a reasonable answer was received
 		readIn( _dataIn, _lenIn );
 
