@@ -186,15 +186,15 @@ public:
 	// Read one sample from scope
 	int readSampleData(uint8_t _channel, double *_volts, double *_time, int _len) throw(rUSB_exception, HantekDSO_exception);
 
+	// Flush read buffer
+	void flushBuffer();
+
 private:
 	// Send request to scope
 	int sendOut(uint8_t _marker, uint8_t _cmd, uint8_t *_data, int _len) throw(rUSB_exception);
 
 	// Read data from scope, returns bytes received
 	int readIn(uint8_t *_data, int _max_len) throw(rUSB_exception, HantekDSO_exception);
-
-	// Flush read buffer
-	void flushBuffer();
 
 	// Issue a request and check return data
 	void issueRequest(uint8_t _marker, uint8_t _cmd, uint8_t *_dataIn, int _lenIn, uint8_t *_dataOut, int _lenOut) throw(rUSB_exception, HantekDSO_exception);

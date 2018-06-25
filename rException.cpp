@@ -5,10 +5,10 @@
 #include <stdio.h>	// for sprintf
 
 rException::rException(std::string _newMessage,int _errNumber) : exception(), __message(_newMessage), __errNo(_errNumber) {
-/*	char _buf[20];
+	char _buf[20];
 	sprintf(_buf, " (Error Number %i)", __errNo);
 	__message += _buf;
-*/
+
 };
 	
 const char* rException::what() const throw() { 

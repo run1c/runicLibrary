@@ -106,8 +106,8 @@ int rUSB_interface::controlTransfer(uint8_t _request, uint16_t _index, uint16_t 
 	int _errorCode = LIBUSB_ERROR_TIMEOUT;
 
 	// Retry transmission if a timeout error was received
-	for (int _iTry = 0; (_iTry < _maxTries) && (_errorCode == LIBUSB_ERROR_TIMEOUT); _iTry++ )
-		_errorCode = libusb_control_transfer( __handle, _endpoint, _request, _index, _value, _buffer, _len, RUSB_DEFAULT_TIMEOUT_MS ); 
+//	for (int _iTry = 0; (_iTry < _maxTries) && (_errorCode == LIBUSB_ERROR_TIMEOUT); _iTry++ )
+	_errorCode = libusb_control_transfer( __handle, _endpoint, _request, _index, _value, _buffer, _len, RUSB_DEFAULT_TIMEOUT_MS ); 
 
 	// Error handling
 	if (_errorCode < 0)
@@ -139,12 +139,12 @@ int rUSB_interface::bulkTransfer(unsigned char* _data, int _len, uint8_t _endpoi
 	int _bytesTransferred = -1, _errorCode = LIBUSB_ERROR_TIMEOUT;
 
 	// Retry transmission if a timeout error was received
-	for (int _iTry = 0; (_iTry < _maxTries) && (_errorCode == LIBUSB_ERROR_TIMEOUT); _iTry++ )
-		_errorCode = libusb_bulk_transfer( __handle, _endpoint, _data, _len, &_bytesTransferred, RUSB_DEFAULT_TIMEOUT_MS );
+//	for (int _iTry = 0; (_iTry < _maxTries) && (_errorCode == LIBUSB_ERROR_TIMEOUT); _iTry++ )
+	_errorCode = libusb_bulk_transfer( __handle, _endpoint, _data, _len, &_bytesTransferred, RUSB_DEFAULT_TIMEOUT_MS);
 
 	// Error handling
 	if (_errorCode < 0)
-		throw( rUSB_exception("bulkTransfer : error on transmission.", _errorCode) );
+		throw( rUSB_exception("bulkTransfer : error on transmission", _errorCode) );
 
 	// Return bytes transferred
 	return _bytesTransferred;

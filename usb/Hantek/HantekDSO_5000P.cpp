@@ -56,7 +56,7 @@ HantekDSO_5000P::~HantekDSO_5000P(){
 
 void HantekDSO_5000P::beep() throw(rUSB_exception, HantekDSO_exception) {
 	uint8_t _data_buffer[10];
-	_data_buffer[0] = 0x01;	// 100ms/count
+	_data_buffer[0] = 0x02;	// 100ms/count
 	issueRequest(HANTEK_DSO_DEBUG_MSG, HANTEK_DSO_BEEP, _data_buffer, 1);
 	return;
 };
@@ -111,7 +111,6 @@ int HantekDSO_5000P::readSampleData(uint8_t _channel, double *_data, double *_ti
 	while (true) {
 		// Read packet
 		_packet_len = readIn( _data_buffer, sizeof(_data_buffer) );
-		usleep(HANTEK_DSO_IDLE_US);
 		
 		// Check for error packets
 		if (_data_buffer[HANTEK_DSO_SUB_CMD_POS] == HANTEK_DSO_SUB_ERROR)
@@ -175,6 +174,7 @@ int HantekDSO_5000P::sendOut(uint8_t _marker, uint8_t _cmd, uint8_t *_data, int 
 #endif
 
 	// Send data via USB and return number of transferred bytes
+	usleep(HANTEK_DSO_IDLE_US);	// Spacer between successive reads/writes
 	return __usb_port->sendOutBulk( _data_buffer, _total_len, __ep_out_addr , HANTEK_DSO_MAXTRIES );	
 }
 
@@ -221,14 +221,10 @@ void HantekDSO_5000P::flushBuffer(){
 		try{
 			if ( readIn(_dummy, sizeof(_dummy) ) == -1 ) break;
 		} catch (rUSB_exception &ex) {
-			if (ex.getErrorNumber() == LIBUSB_ERROR_TIMEOUT) { 
-				if (iTry == 10)
-					break;
-				else iTry++;
 #ifdef DEBUG
-				printf("[DEBUG HantekDSO_5000P::flushBuffer] - Timeout no. %i.\n", iTry);
+			printf("[DEBUG HantekDSO_5000P::flushBuffer] - Timeout no. %i.\n", iTry);
 #endif
-			}
+			break;
 		} catch (HantekDSO_exception) {
 			break;
 		}
@@ -248,7 +244,6 @@ void HantekDSO_5000P::issueRequest(uint8_t _marker, uint8_t _cmd, uint8_t *_data
 
 	// Read answer
 	while (true) {
-		usleep(HANTEK_DSO_IDLE_US);	// TODO: Avoid sleep!!
 		// Read until a reasonable answer was received
 		readIn( _dataIn, _lenIn );
 
@@ -257,8 +252,6 @@ void HantekDSO_5000P::issueRequest(uint8_t _marker, uint8_t _cmd, uint8_t *_data
 		printf("[DEBUG HantekDSO_5000P::issueRequest] - Wrong message, reading again.\n");
 #endif
 	}	
-
-	usleep(HANTEK_DSO_IDLE_US);
 	
 	return;
 }

@@ -24,7 +24,7 @@ public:
 #include <vector>
 
 #define RUSB_BUF_LEN			64	
-#define RUSB_DEFAULT_TIMEOUT_MS		0	// 0 = never timeout
+#define RUSB_DEFAULT_TIMEOUT_MS		1000	// 0 = never timeout
 #define RUSB_MAX_TRIES			10	
 
 #define RUSB_NO_INTERFACE		-1	// No interface currently selected; Iso- & bulktransfers will fail, controltransfers will go to EP0
