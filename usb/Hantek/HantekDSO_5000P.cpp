@@ -47,6 +47,9 @@ HantekDSO_5000P::HantekDSO_5000P(rUSB_interface *_port) throw(HantekDSO_exceptio
 		throw( HantekDSO_exception("constructor : wrong endpoint configuration found.") );
 	// Claim the io interface
 	__usb_port->claimInterface(__ioInterfaceNo);	 
+
+	// Flush RX buffer
+	this->flushBuffer();
 }
 
 HantekDSO_5000P::~HantekDSO_5000P(){

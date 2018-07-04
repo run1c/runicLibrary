@@ -16,6 +16,8 @@ int main(){
 	double data[20000], time[20000]; 
 	int sampleLen = -1;
 
+
+	dso.flushBuffer();
 	dso.beep();
 	dso.lockPanel();
 	dso.getSettings();

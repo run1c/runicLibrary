@@ -4,6 +4,7 @@
 #include "rI2C_interface.h"
 
 #include <linux/i2c-dev.h>
+#include <linux/i2c.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -69,8 +70,18 @@ int rI2C_interface::sendOut(const uint8_t *_data, int _len) throw(rI2C_exception
 	return _ret;
 }
 
+int rI2C_interface::writeReg(uint8_t _reg_addr, const uint8_t *_data, int _len) throw(rI2C_exception) {
+	// Add address as the first transmitted byte
+	uint8_t* _buf = new uint8_t[_len + 1];
+	_buf[0] = _reg_addr;
+	for (int i = 0; i < _len; i++)
+		_buf[i + 1] = _data[i];
+	return sendOut(_buf, _len + 1); 
+}
+
+
 int rI2C_interface::readByte(uint8_t *_byte, int _timeout_ms) throw(rI2C_exception){
-	return 0;
+	return readIn(_byte, 1);
 }
 
 int rI2C_interface::readIn(uint8_t *_data, int _len, int _timeout_ms) throw(rI2C_exception){
@@ -82,6 +93,15 @@ int rI2C_interface::readIn(uint8_t *_data, int _len, int _timeout_ms) throw(rI2C
 
 	return _ret;
 }
+
+int rI2C_interface::readReg(uint8_t _reg_addr, uint8_t *_data, int _maxLen, int _timeout_ms) throw(rI2C_exception) {
+	// First set the register by sending the address byte to the slave
+	sendByte(_reg_addr);
+	// Register is addressed, read content
+	return readIn(_data, _maxLen);
+}
+
+
 
 /*
  *	Private methods

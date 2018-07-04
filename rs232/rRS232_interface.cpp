@@ -13,7 +13,6 @@ rRS232_interface::rRS232_interface(const char* _dev) throw(rRS232_exception) : r
 }
 
 rRS232_interface::~rRS232_interface(){
-
 }
 
 int rRS232_interface::sendByte(const uint8_t _byte) throw(rRS232_exception){

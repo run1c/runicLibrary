@@ -44,11 +44,15 @@ public:
 	// Returns the number of bytes transferred
 	int sendByte(const uint8_t _byte) throw(rI2C_exception);
 	int sendOut(const uint8_t *_data, int _len) throw(rI2C_exception);
+	// Writing to a register with given address
+	int writeReg(uint8_t _reg_addr, const uint8_t *_data, int _len) throw(rI2C_exception);
 
 	// Default receive methods
 	// Returns the number of bytes received
 	int readByte(uint8_t *_byte, int _timeout_ms = DEFAULT_TIMEOUT_MS) throw(rI2C_exception);
 	int readIn(uint8_t *_data, int _maxLen, int _timeout_ms = DEFAULT_TIMEOUT_MS) throw(rI2C_exception);
+	// Reading from a register with given address
+	int readReg(uint8_t _reg_addr, uint8_t *_data, int _maxLen, int _timeout_ms = DEFAULT_TIMEOUT_MS) throw(rI2C_exception);
 
 private:
 	uint8_t __curSlaveAddr;
