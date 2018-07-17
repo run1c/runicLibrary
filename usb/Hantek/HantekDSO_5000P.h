@@ -82,6 +82,11 @@ public:
 #define HANTEK_DSO_VERT_VB_1V		0x08
 #define HANTEK_DSO_VERT_VB_2V		0x09
 #define HANTEK_DSO_VERT_VB_5V		0x0A
+// Probe attenuation
+#define HANTEK_DSO_VERT_PROBE_1		0x00
+#define HANTEK_DSO_VERT_PROBE_10	0x01
+#define HANTEK_DSO_VERT_PROBE_100	0x02
+#define HANTEK_DSO_VERT_PROBE_1000	0x03
 
 // Horizontal settings (Seconds/division)
 #define HANTEK_DSO_HORZ_DIV_PER_SCREEN	19.f
@@ -202,6 +207,8 @@ private:
 
 	// Returns volts per division
 	float getVoltsPerDiv(uint8_t _vb);
+	// Returns probe attenuation
+	double getAttenuation(uint8_t _att);
 	// Returns seconds per division
 	double getSecPerDiv(uint8_t _tb);
 
@@ -210,7 +217,7 @@ private:
 	uint8_t __ep_in_addr, __ep_out_addr; 
 	
 	// Channel settings
-	double __voltsPerDiv[HANTEK_DSO_N_CHANNELS], __secondsPerDiv;
+	double __voltsPerDiv[HANTEK_DSO_N_CHANNELS], __probe_attenuation[HANTEK_DSO_N_CHANNELS], __secondsPerDiv;
 	bool __channelEnable[HANTEK_DSO_N_CHANNELS];
 	int16_t __channelOffset[HANTEK_DSO_N_CHANNELS];
 };

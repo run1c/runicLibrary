@@ -90,6 +90,8 @@ void HantekDSO_5000P::getSettings() throw(rUSB_exception, HantekDSO_exception){
 	// Extract settings!
 	__voltsPerDiv[0] = getVoltsPerDiv(_settings.sysData.CH1_volt_per_div);
 	__voltsPerDiv[1] = getVoltsPerDiv(_settings.sysData.CH2_volt_per_div);
+	__probe_attenuation[0] = getAttenuation(_settings.sysData.CH1_probe);
+	__probe_attenuation[1] = getAttenuation(_settings.sysData.CH2_probe);
 	__channelEnable[0] = _settings.sysData.CH1_on;
 	__channelEnable[1] = _settings.sysData.CH2_on;
 	__channelOffset[0] = (int16_t)_settings.sysData.CH1_position;
@@ -131,7 +133,7 @@ int HantekDSO_5000P::readSampleData(uint8_t _channel, double *_data, double *_ti
 			// Sample data begins two bytes after the subcommand byte (CHn) and ends one byte before end of the sample (checksum) 
 			for (int _iByte = (HANTEK_DSO_SUB_CMD_POS + 2); _iByte < (_packet_len - 1); _iByte++){
 				// Calculate actual voltage from read settings
-				_data[_sampleByteReceived] = ( (int8_t)_data_buffer[_iByte] - __channelOffset[_channel] ) * __voltsPerDiv[_channel]/HANTEK_DSO_VERT_DOTS_PER_DIV;
+				_data[_sampleByteReceived] = ( (int8_t)_data_buffer[_iByte] - __channelOffset[_channel] ) * __probe_attenuation[_channel] * __voltsPerDiv[_channel]/HANTEK_DSO_VERT_DOTS_PER_DIV;
 				_time[_sampleByteReceived] = _sampleByteReceived * __secondsPerDiv * HANTEK_DSO_HORZ_DIV_PER_SCREEN/_sample_len; 
 				_sampleByteReceived++;
 			}
@@ -299,6 +301,26 @@ float HantekDSO_5000P::getVoltsPerDiv(uint8_t _vb){
 		break;
 	case HANTEK_DSO_VERT_VB_5V:
 		return 5.000;
+		break;
+	default:
+		break;
+	}
+	return -1;
+}
+
+double HantekDSO_5000P::getAttenuation(uint8_t _att){
+	switch (_att) {
+	case HANTEK_DSO_VERT_PROBE_1:
+		return 1.;
+		break;
+	case HANTEK_DSO_VERT_PROBE_10:
+		return 10.;
+		break;
+	case HANTEK_DSO_VERT_PROBE_100:
+		return 100.;
+		break;
+	case HANTEK_DSO_VERT_PROBE_1000:
+		return 1000.;
 		break;
 	default:
 		break;
