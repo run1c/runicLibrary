@@ -81,26 +81,162 @@ void HantekDSO_5000P::unlockPanel() throw(rUSB_exception, HantekDSO_exception){
 };
 
 void HantekDSO_5000P::getSettings() throw(rUSB_exception, HantekDSO_exception){
-	HantekDSO_settings _settings;
-	issueRequest(HANTEK_DSO_NORMAL_MSG, 0x01, NULL, 0, _settings.raw, sizeof(_settings) );
+	uint8_t _buf[300];
 
-//	for (int i = 120; i < 180; i++)
-//		printf("[%i 0x%02X]\n", i, _settings.raw[i]);	
+	issueRequest(HANTEK_DSO_NORMAL_MSG, 0x01, NULL, 0, _buf, sizeof(_buf) );
+	// Remove 4 header bytes and 1 footer byte
+	for (int i = 0; i < sizeof(__DSOsettings.raw); i++)
+		__DSOsettings.raw[i] = _buf[i+4];
 
 	// Extract settings!
-	__voltsPerDiv[0] = getVoltsPerDiv(_settings.sysData.CH1_volt_per_div);
-	__voltsPerDiv[1] = getVoltsPerDiv(_settings.sysData.CH2_volt_per_div);
-	__probe_attenuation[0] = getAttenuation(_settings.sysData.CH1_probe);
-	__probe_attenuation[1] = getAttenuation(_settings.sysData.CH2_probe);
-	__channelEnable[0] = _settings.sysData.CH1_on;
-	__channelEnable[1] = _settings.sysData.CH2_on;
-	__channelOffset[0] = (int16_t)_settings.sysData.CH1_position;
-	__channelOffset[1] = (int16_t)_settings.sysData.CH2_position;
-	__secondsPerDiv = getSecPerDiv(_settings.sysData.timebase);
+	__voltsPerDiv[0] = getVoltsPerDiv(__DSOsettings.sysData.CH1_volt_per_div);
+	__voltsPerDiv[1] = getVoltsPerDiv(__DSOsettings.sysData.CH2_volt_per_div);
+	__probe_attenuation[0] = getAttenuation(__DSOsettings.sysData.CH1_probe);
+	__probe_attenuation[1] = getAttenuation(__DSOsettings.sysData.CH2_probe);
+	__channelEnable[0] = __DSOsettings.sysData.CH1_on;
+	__channelEnable[1] = __DSOsettings.sysData.CH2_on;
+	__channelOffset[0] = (int16_t)__DSOsettings.sysData.CH1_position;
+	__channelOffset[1] = (int16_t)__DSOsettings.sysData.CH2_position;
+	__secondsPerDiv = getSecPerDiv(__DSOsettings.sysData.timebase);
 	return;
 }
 
-int HantekDSO_5000P::readSampleData(uint8_t _channel, double *_data, double *_time, int _len) throw(rUSB_exception, HantekDSO_exception){
+HantekDSO_settings HantekDSO_5000P::Settings() {
+	return __DSOsettings;
+}
+
+void HantekDSO_5000P::applySettings() throw(rUSB_exception, HantekDSO_exception) {
+	uint8_t _buf[30];
+	issueRequest(HANTEK_DSO_NORMAL_MSG, HANTEK_DSO_APPL_SETTING, __DSOsettings.raw, sizeof(__DSOsettings), _buf, 30);
+	return;	
+}
+
+void HantekDSO_5000P::applySettings(HantekDSO_settings _settings) throw(rUSB_exception, HantekDSO_exception) {
+	uint8_t _buf[30];
+	issueRequest(HANTEK_DSO_NORMAL_MSG, HANTEK_DSO_APPL_SETTING, _settings.raw, sizeof(_settings), _buf, 30);
+	return;	
+}
+
+void HantekDSO_5000P::enableCH(int _chNo, bool _on_off) {
+	switch (_chNo) {
+		case 1:
+		__DSOsettings.sysData.CH1_on = (uint8_t)_on_off;
+		break;
+		case 2:
+		__DSOsettings.sysData.CH2_on = (uint8_t)_on_off;
+		break;
+		default:	
+		// TODO: Exception, wrong channel value!!
+		break;	
+	}
+	return;
+}
+
+void HantekDSO_5000P::setCoupling(int _chNo, uint8_t _vert_coup) {
+	// TODO: check _vert_coup for valid value
+	switch (_chNo) {
+		case 1:
+		__DSOsettings.sysData.CH1_coupling = _vert_coup; 
+		break;
+		case 2:
+		__DSOsettings.sysData.CH2_coupling = _vert_coup; 
+		break;
+		default:	
+		// TODO: Exception, wrong channel value!!
+		break;	
+	}
+	return;
+}
+
+void HantekDSO_5000P::setVertical(int _chNo, uint8_t _vert_VB) {
+	// TODO: check _vert_VB for valid value
+	switch (_chNo) {
+		case 1:
+		__DSOsettings.sysData.CH1_volt_per_div = _vert_VB; 
+		break;
+		case 2:
+		__DSOsettings.sysData.CH2_volt_per_div = _vert_VB; 
+		break;
+		default:	
+		// TODO: Exception, wrong channel value!!
+		break;	
+	}
+	return;
+}
+
+void HantekDSO_5000P::setAttenuation(int _chNo, uint8_t _vert_probe) {
+	// TODO: check _vert_probe for valid value
+	switch (_chNo) {
+		case 1:
+		__DSOsettings.sysData.CH1_probe = _vert_probe;
+		break;
+		case 2:
+		__DSOsettings.sysData.CH2_probe = _vert_probe;
+		break;
+		default:	
+		// TODO: Exception, wrong channel value!!
+		break;	
+	}
+	return;
+}
+
+void HantekDSO_5000P::setVertPos(int _chNo, int _pos) {
+	// TODO: check _pos for valid value
+	// Auf den Screen passen etwa +-100 Werte (4 division = 100 Werte)
+	switch (_chNo) {
+		case 1:
+		__DSOsettings.sysData.CH1_position = _pos;
+		break;
+		case 2:
+		__DSOsettings.sysData.CH2_position = _pos;
+		break;
+		default:	
+		// TODO: Exception, wrong channel value!!
+		break;	
+	}
+	return;
+}
+
+void HantekDSO_5000P::setTriggerMode(uint8_t _mode) {
+	// TODO: check _timebase for valid value
+	__DSOsettings.raw[118] = _mode;		// Through trial and error...
+//	__DSOsettings.sysData.trig_mode = _mode;
+	return;
+}
+
+void HantekDSO_5000P::setTriggerLevel(int _trig_pos) {
+	// TODO: check _trig_pos for valid value
+	// Attention: Lower byte first, upper second 
+	uint8_t _trig_posu = (uint8_t) (_trig_pos >> 8);
+	uint8_t _trig_posl = (uint8_t) (_trig_pos & 0xFF);
+//	__DSOsettings.sysData.trig_vpos = (uint16_t) ( (_trig_posl << 8) | _trig_posu); // Does not work... better with RAW and defined positions
+	__DSOsettings.raw[25] = _trig_posl;
+	__DSOsettings.raw[26] = _trig_posu;
+	return;
+}
+
+void HantekDSO_5000P::setTimebase(uint8_t _timebase) {
+	// TODO: check _timebase for valid value
+	__DSOsettings.sysData.timebase = _timebase;
+	__DSOsettings.sysData.window_timebase = _timebase;
+	return;
+}
+
+void HantekDSO_5000P::setTriggerDelay(long long int _delay) {
+	// TODO: check _delay for valid value
+	// Each step is 50ps
+	__DSOsettings.raw[163] = (_delay & 0x00000000000000FF) >> 0;
+	__DSOsettings.raw[164] = (_delay & 0x000000000000FF00) >> 8;
+	__DSOsettings.raw[165] = (_delay & 0x0000000000FF0000) >> 16;
+	__DSOsettings.raw[166] = (_delay & 0x00000000FF000000) >> 24;
+	__DSOsettings.raw[167] = (_delay & 0x000000FF00000000) >> 32;
+	__DSOsettings.raw[168] = (_delay & 0x0000FF0000000000) >> 40;
+	__DSOsettings.raw[169] = (_delay & 0x00FF000000000000) >> 48;
+	__DSOsettings.raw[170] = (_delay & 0xFF00000000000000) >> 56;
+	return;
+}
+
+int HantekDSO_5000P::readSampleData(uint8_t _channel, double *_data, double *_time, int _len, int _delay_us) throw(rUSB_exception, HantekDSO_exception){
 	uint8_t _data_buffer[11000];
 	int _sample_len = HANTEK_DSO_NODATA, _packet_len, _sampleByteReceived = 0;
 
@@ -114,6 +250,9 @@ int HantekDSO_5000P::readSampleData(uint8_t _channel, double *_data, double *_ti
 	sendOut(HANTEK_DSO_NORMAL_MSG, HANTEK_DSO_READ_SAMPLE, _data_buffer, 2);
 
 	while (true) {
+		// Optional sleep for larger data packages
+		usleep(_delay_us);
+
 		// Read packet
 		_packet_len = readIn( _data_buffer, sizeof(_data_buffer) );
 		
@@ -174,7 +313,7 @@ int HantekDSO_5000P::sendOut(uint8_t _marker, uint8_t _cmd, uint8_t *_data, int 
 #ifdef DEBUG
 	printf("[DEBUG HantekDSO_5000P::sendOut] - Sending: ");
 	for (int i = 0; i < _total_len; i++)
-		printf("0x%02X ", _data_buffer[i]);
+		printf("0x%02X[%i] ", _data_buffer[i], i);
 	printf(" - Sent %i bytes\n", _total_len);	
 #endif
 
@@ -191,12 +330,10 @@ int HantekDSO_5000P::readIn(uint8_t *_data, int _max_len) throw(rUSB_exception, 
 
 #ifdef DEBUG
 	printf("[DEBUG HantekDSO_5000P::readIn] - Received: ");
-	for (int i = 0; (i<10) && (i < (_bytesTransferred-1)); i++){ 
-		printf("0x%02X ", _data[i]);
+	for (int i = 0;i < (_bytesTransferred-1); i++){ 
+		printf("0x%02X[%i] ", _data[i], i);
 	}
-	if (_bytesTransferred > 10)
-		printf("... ");
-	printf("0x%02X - Received %i bytes\n", _data[_bytesTransferred-1], _bytesTransferred);	
+	printf("0x%02X - Received %i bytes\n", _data[_bytesTransferred-1], _bytesTransferred);
 #endif
 
 	// Check command byte direction (CMD > 0x80 = DSO -> PC)
@@ -221,13 +358,12 @@ void HantekDSO_5000P::flushBuffer(){
 	printf("[DEBUG HantekDSO_5000P::flushBuffer] - Reading in buffer.\n");
 #endif
 	uint8_t _dummy[13000];
-	int iTry = 0;
 	while (true) {
 		try{
 			if ( readIn(_dummy, sizeof(_dummy) ) == -1 ) break;
 		} catch (rUSB_exception &ex) {
 #ifdef DEBUG
-			printf("[DEBUG HantekDSO_5000P::flushBuffer] - Timeout no. %i.\n", iTry);
+			printf("[DEBUG HantekDSO_5000P::flushBuffer] - Timeout.\n");
 #endif
 			break;
 		} catch (HantekDSO_exception) {

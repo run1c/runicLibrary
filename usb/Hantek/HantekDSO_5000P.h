@@ -46,6 +46,7 @@ public:
 
 // Commands
 #define HANTEK_DSO_READ_SETTING	0x01	
+#define HANTEK_DSO_APPL_SETTING	0x11	
 #define HANTEK_DSO_SCREENSHOT	0x20	
 #define HANTEK_DSO_READ_TIME	0x21	
 #define HANTEK_DSO_BEEP		0x44
@@ -68,6 +69,8 @@ public:
 #define HANTEK_DSO_MAX_PACKETS	202
 #define HANTEK_DSO_NODATA	-1	
 
+// Settings length (208 bytes of settings)
+#define HANTEK_DSO_SETTINGS_LEN		208
 // Vertical settings (Volts/division) 
 #define HANTEK_DSO_VERT_DIV_PER_SCREEN	8.32f
 #define HANTEK_DSO_VERT_DOTS_PER_DIV	25.
@@ -82,6 +85,10 @@ public:
 #define HANTEK_DSO_VERT_VB_1V		0x08
 #define HANTEK_DSO_VERT_VB_2V		0x09
 #define HANTEK_DSO_VERT_VB_5V		0x0A
+// Coupling settings
+#define HANTEK_DSO_COUP_DC		0x00
+#define HANTEK_DSO_COUP_AC		0x01
+#define HANTEK_DSO_COUP_GND		0x02
 // Probe attenuation
 #define HANTEK_DSO_VERT_PROBE_1		0x00
 #define HANTEK_DSO_VERT_PROBE_10	0x01
@@ -89,7 +96,7 @@ public:
 #define HANTEK_DSO_VERT_PROBE_1000	0x03
 
 // Horizontal settings (Seconds/division)
-#define HANTEK_DSO_HORZ_DIV_PER_SCREEN	19.f
+#define HANTEK_DSO_HORZ_DIV_PER_SCREEN	16.f
 #define HANTEK_DSO_HORZ_TB_2NS		0x00
 #define HANTEK_DSO_HORZ_TB_4NS		0x01
 #define HANTEK_DSO_HORZ_TB_8NS		0x02
@@ -125,21 +132,43 @@ public:
 #define HANTEK_DSO_HORZ_TB_80S		0x20
 
 // Trigger status
-#define HANTEK_DSO_STOP			0x00
-#define HANTEK_DSO_READY		0x01
-#define HANTEK_DSO_AUTO			0x02
-#define HANTEK_DSO_TRIGGERED		0x03
-#define HANTEK_DSO_SCAN			0x04
-#define HANTEK_DSO_ASTOP		0x05
-#define HANTEK_DSO_ARMED		0x06
+#define HANTEK_DSO_TRIG_STOP		0x00
+#define HANTEK_DSO_TRIG_READY		0x01
+#define HANTEK_DSO_TRIG_AUTO		0x02
+#define HANTEK_DSO_TRIG_TRIGGERED	0x03
+#define HANTEK_DSO_TRIG_SCAN		0x04
+#define HANTEK_DSO_TRIG_ASTOP		0x05
+#define HANTEK_DSO_TRIG_ARMED		0x06
+// Trigger type
+#define HANTEK_DSO_TRIG_EDGE		0x00
+#define HANTEK_DSO_TRIG_VIDEO		0x01
+#define HANTEK_DSO_TRIG_PULSE		0x02
+#define HANTEK_DSO_TRIG_SLOPE		0x03
+#define HANTEK_DSO_TRIG_OT		0x04
+#define HANTEK_DSO_TRIG_ALT		0x05
+// Trigger source 
+#define HANTEK_DSO_TRIG_CH1		0x00
+#define HANTEK_DSO_TRIG_CH2		0x01
+#define HANTEK_DSO_TRIG_EXT		0x02
+#define HANTEK_DSO_TRIG_EXT5		0x03
+#define HANTEK_DSO_TRIG_AC50		0x04
+// Trigger mode
+#define HANTEK_DSO_TRIG_MODE_AUTO	0x00
+#define HANTEK_DSO_TRIG_MODE_NORM	0x01
+// Trigger coupling
+#define HANTEK_DSO_TRIG_DC		0x00
+#define HANTEK_DSO_TRIG_AC		0x01
+#define HANTEK_DSO_TRIG_NR		0x02
+#define HANTEK_DSO_TRIG_HR		0x03
+#define HANTEK_DSO_TRIG_LR		0x04
+
 
 /*
  *	Struct for communication with Hantek DSOs
  */
 
-union HantekDSO_settings{
+union HantekDSO_settings {
 	struct {
-		uint32_t dump;	
 		// Channel 1 vertical settings
 		uint8_t CH1_on;
 		uint8_t CH1_volt_per_div;
@@ -149,7 +178,7 @@ union HantekDSO_settings{
 		uint8_t CH1_probe;
 		uint8_t CH1_phase;
 		uint8_t CH1_volt_per_div_fine;
-		uint16_t CH1_position;
+		uint16_t CH1_position;	// First byte is upper byte, second is lower byte
 		// Channel 2 vertical settings
 		uint8_t CH2_on;
 		uint8_t CH2_volt_per_div;
@@ -161,15 +190,21 @@ union HantekDSO_settings{
 		uint8_t CH2_volt_per_div_fine;
 		uint16_t CH2_position;
 		// Trigger status
-		uint8_t TRG_dummy[141];
-		// Vertical settings
+		uint8_t trig_state;
+		uint8_t trig_type;
+		uint8_t trig_src;
+		uint8_t trig_mode;
+		uint8_t trig_coup;
+		uint16_t trig_vpos;	// First byte is lower byte, second is upper byte
+		uint8_t TRG_dummy[132];
+		// Horizontal settings
 		uint8_t timebase;
 		uint8_t window_timebase;
 		uint8_t window_state;
-		uint64_t trigger_delay;
+		uint64_t trigger_delay;	// Tatsächlich in 50ps Schritten
 
 	} sysData;
-	uint8_t raw[214];	// 214
+	uint8_t raw[208];	// 213 bytes - 5 bytes (header + checksum) = 208 bytes of settings (according to readIn...)
 };
 
 class HantekDSO_5000P {
@@ -187,9 +222,33 @@ public:
 
 	// Get settings for readout
 	void getSettings() throw(rUSB_exception, HantekDSO_exception);
+	// Getter method for debugging...
+	HantekDSO_settings Settings();
+	// Apply settings to scope
+	void applySettings() throw(rUSB_exception, HantekDSO_exception);
+	void applySettings(HantekDSO_settings _settings) throw(rUSB_exception, HantekDSO_exception);
+
+	// Switch channel on/off
+	void enableCH(int _chNo, bool _on_off);
+	// Set channel coupling
+	void setCoupling(int _chNo, uint8_t _vert_coup);
+	// Change Volts/Div for given channel
+	void setVertical(int _chNo, uint8_t _vert_VB);
+	// Change probe attenuation for given channel
+	void setAttenuation(int _chNo, uint8_t _vert_probe);
+
+	void setTriggerMode(uint8_t _mode);
+	void setTriggerLevel(int _trig_pos);
+
+	// Apply vertical offset
+	void setVertPos(int _chNo, int _pos);
+	// Change seconds/Div for given channel
+	void setTimebase(uint8_t _timebase);
+	// Apply trigger delay
+	void setTriggerDelay(long long int _delay);
 
 	// Read one sample from scope
-	int readSampleData(uint8_t _channel, double *_volts, double *_time, int _len) throw(rUSB_exception, HantekDSO_exception);
+	int readSampleData(uint8_t _channel, double *_volts, double *_time, int _len, int _delay_us = 0) throw(rUSB_exception, HantekDSO_exception);
 
 	// Flush read buffer
 	void flushBuffer();
@@ -202,7 +261,7 @@ private:
 	int readIn(uint8_t *_data, int _max_len) throw(rUSB_exception, HantekDSO_exception);
 
 	// Issue a request and check return data
-	void issueRequest(uint8_t _marker, uint8_t _cmd, uint8_t *_dataIn, int _lenIn, uint8_t *_dataOut, int _lenOut) throw(rUSB_exception, HantekDSO_exception);
+	void issueRequest(uint8_t _marker, uint8_t _cmd, uint8_t *_dataOut, int _lenOut, uint8_t *_dataIn, int _lenIn) throw(rUSB_exception, HantekDSO_exception);
 	void issueRequest(uint8_t _marker, uint8_t _cmd, uint8_t *_data, int _len) throw(rUSB_exception, HantekDSO_exception);
 
 	// Returns volts per division
@@ -217,6 +276,7 @@ private:
 	uint8_t __ep_in_addr, __ep_out_addr; 
 	
 	// Channel settings
+	HantekDSO_settings __DSOsettings;
 	double __voltsPerDiv[HANTEK_DSO_N_CHANNELS], __probe_attenuation[HANTEK_DSO_N_CHANNELS], __secondsPerDiv;
 	bool __channelEnable[HANTEK_DSO_N_CHANNELS];
 	int16_t __channelOffset[HANTEK_DSO_N_CHANNELS];

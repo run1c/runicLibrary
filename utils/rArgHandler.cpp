@@ -101,7 +101,7 @@ void rArgHandler::printHelp(){
 	// Print description list
 	printf("The following arguments are accepted by '%s':\n", __argv[0]);
 	for (std::vector<rArgument>::iterator _it = __argumentVector.begin(); _it != __argumentVector.end(); _it++){
-		printf("%s\t%s (%s, requires %i parameters)\n", _it->command.c_str(), _it->description.c_str(), (_it->optional) ? "optional" : "mandatory", _it->nParameter);
+		printf("%s\t%s [%s, requires %i parameter(s)]\n", _it->command.c_str(), _it->description.c_str(), (_it->optional) ? "optional" : "mandatory", _it->nParameter);
 	}
 	printf("\n");
 
