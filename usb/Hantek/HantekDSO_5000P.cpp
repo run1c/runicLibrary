@@ -80,6 +80,30 @@ void HantekDSO_5000P::unlockPanel() throw(rUSB_exception, HantekDSO_exception){
 	return;
 };
 
+void HantekDSO_5000P::startDAQ() throw(rUSB_exception, HantekDSO_exception){
+	uint8_t _data_buffer[10];
+	_data_buffer[0]= 0x00;	// DAQ subcommand
+	_data_buffer[1]= 0x00;	// Start
+	issueRequest(HANTEK_DSO_NORMAL_MSG, HANTEK_DSO_START_STOP, _data_buffer, 2);
+	return;
+};
+
+void HantekDSO_5000P::stopDAQ() throw(rUSB_exception, HantekDSO_exception){
+	uint8_t _data_buffer[10];
+	_data_buffer[0]= 0x00;	// DAQ subcommand
+	_data_buffer[1]= 0x01;	// Stop
+	issueRequest(HANTEK_DSO_NORMAL_MSG, HANTEK_DSO_START_STOP, _data_buffer, 2);
+	return;
+};
+
+void HantekDSO_5000P::keyPress(uint8_t _key) throw(rUSB_exception, HantekDSO_exception){
+	uint8_t _data_buffer[10];
+	_data_buffer[0]= _key;	
+	_data_buffer[1]= 0x01;
+	issueRequest(HANTEK_DSO_NORMAL_MSG, 0x13, _data_buffer, 2);
+	return;
+};
+
 void HantekDSO_5000P::getSettings() throw(rUSB_exception, HantekDSO_exception){
 	uint8_t _buf[300];
 
@@ -115,6 +139,13 @@ void HantekDSO_5000P::applySettings(HantekDSO_settings _settings) throw(rUSB_exc
 	uint8_t _buf[30];
 	issueRequest(HANTEK_DSO_NORMAL_MSG, HANTEK_DSO_APPL_SETTING, _settings.raw, sizeof(_settings), _buf, 30);
 	return;	
+}
+
+uint8_t HantekDSO_5000P::getTriggerState() throw(rUSB_exception, HantekDSO_exception){
+	uint8_t _buf[300];
+
+	issueRequest(HANTEK_DSO_NORMAL_MSG, 0x01, NULL, 0, _buf, sizeof(_buf) );
+	return _buf[24];
 }
 
 void HantekDSO_5000P::enableCH(int _chNo, bool _on_off) {

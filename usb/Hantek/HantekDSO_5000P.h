@@ -14,7 +14,6 @@ public:
         ~HantekDSO_exception() throw() {};
 
 };
-
 /*
  *	Class for controlling/monitoring Hantek DSO 5000P series
  */
@@ -220,6 +219,11 @@ public:
 	void lockPanel() throw(rUSB_exception, HantekDSO_exception);
 	void unlockPanel() throw(rUSB_exception, HantekDSO_exception);
 
+	// Start/stop acquisition
+	void startDAQ() throw(rUSB_exception, HantekDSO_exception);
+	void stopDAQ() throw(rUSB_exception, HantekDSO_exception);
+	void keyPress(uint8_t _key) throw(rUSB_exception, HantekDSO_exception);
+
 	// Get settings for readout
 	void getSettings() throw(rUSB_exception, HantekDSO_exception);
 	// Getter method for debugging...
@@ -227,6 +231,7 @@ public:
 	// Apply settings to scope
 	void applySettings() throw(rUSB_exception, HantekDSO_exception);
 	void applySettings(HantekDSO_settings _settings) throw(rUSB_exception, HantekDSO_exception);
+	uint8_t getTriggerState() throw(rUSB_exception, HantekDSO_exception);
 
 	// Switch channel on/off
 	void enableCH(int _chNo, bool _on_off);
